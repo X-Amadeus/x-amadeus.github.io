@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Amadeus</title>
+    <link>https://example.com/posts/</link>
+    <description>Amadeus&#39;s Website</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>Copyright © 2021, Amadeus Team and the Hugo Authors
+All rights reserved.</copyright>
+    <lastBuildDate>Sat, 10 Apr 2021 11:26:58 +0700</lastBuildDate><atom:link href="https://example.com/posts/index.xml" rel="self" type="application/rss+xml" />
+      <item>
+        <title>Securinets Quals 2021 - Binary Exploit</title>
+        <link>https://example.com/posts/securinet/pwn/</link>
+        <pubDate>Sat, 10 Apr 2021 11:26:58 +0700</pubDate>
+        
+        <guid>https://example.com/posts/securinet/pwn/</guid>
+        <description>First note, aku mengerjakan ini semalam setelah kompetisi selesai. Iseng-iseng buka ctftime, di running event ada ini. Tapi, ternyata waktu -1 jam selesai event ini :'(. Untuk solver dan source challanges bisa didownload disini.</description>
+      </item>
+    
+  </channel>
+</rss>
